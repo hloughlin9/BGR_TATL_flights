@@ -1,5 +1,5 @@
 from src import Arrivals, Departures
-from gs import df, df_ws
+from gs import df, df_ws, init_len
 from dicts import ac_dict, al_dict, apc_dict, code_dict
 from datetime import datetime as dt
 from sklearn.preprocessing import LabelEncoder
@@ -134,9 +134,14 @@ bgr = bgr[['ID','Date','Airline','Flight','Type','Origin','Origin Country','Dest
 
 df = df.append(bgr).sort_values(by=['Date']).reset_index(drop=True)
 
+df = df.drop_duplicates(subset=["ID"])
+
 # Last fix 18:30 12/29/2021
 set_with_dataframe(df_ws, df)
 
-print(f"{len(bgr)} flights added. {len(df)} flights total")
+if init_len == len(df):
+    print("No flights added. Program exiting.")
+else:
+    print(f"{len(bgr)} flights added. {len(df)} flights total")
 
 exit()
