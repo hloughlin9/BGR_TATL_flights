@@ -73,8 +73,8 @@ bgr = bgr.drop(["aircrafttype","ident"], axis=1)
 bgr['Origin'] = bgr['origin'].str.strip()
 bgr['Destination'] = bgr['destination'].str.strip()
 
-# We want to filter out flights that are entirely arriving and departing from the US (starting with "K"), Canada (starting with "C"), Mexico (starting with "M"), and
-# Greenland (starting with "BG"). There are other possible airports outside of these but most can be dealt with ad hoc.
+# We want to filter out flights that are entirely arriving and departing from North America, particularly the US (starting with "K"), Canada (starting with "C"), and Mexico (starting with "M").
+# There are other possible airports outside of these but most can be dealt with ad hoc.
 bgr = bgr[((bgr['Origin'].str[0] != "K") & (bgr['Origin'].str[0] != "C") & (bgr['Origin'].str[1] != " ") & (bgr['Origin'].str[0] != "M")) | ((bgr['Destination'].str[0] != "K") & (bgr['Destination'].str[0] != "C") & (bgr['Destination'].str[1] != " ") & (bgr['Destination'].str[0] != "M"))]
 
 # Mapping the origin and destination from ICAO (4-letter) codes to IATA (3-letter) codes.
