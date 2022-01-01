@@ -143,10 +143,10 @@ if init_len == len(df):
 else:
     print(f"{len(df) - init_len} flights added. {len(df)} flights total")
 
-# Sleep logic 13:20 1/1/2022
-time.sleep(4)
-
 # Last fix 18:30 12/29/2021
 set_with_dataframe(df_ws, df)
+
+# Sleep logic 13:20 1/1/2022
+time.sleep(4)
 
 exit()
