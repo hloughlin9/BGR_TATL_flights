@@ -8,6 +8,7 @@ from gspread_dataframe import set_with_dataframe
 import re
 import pandas as pd
 import warnings
+import time
 warnings.filterwarnings("ignore")
 
 now = dt.now()
@@ -137,12 +138,15 @@ bgr = bgr[['ID','Date','Airline','Flight','Type','Origin','Origin Country','Dest
 # Drop duplicate code chained 13:01 1/1/2022
 df = df.append(bgr).sort_values(by=['Date']).reset_index(drop=True).drop_duplicates(subset=['ID'])
 
-# Last fix 18:30 12/29/2021
-set_with_dataframe(df_ws, df)
-
 if init_len == len(df):
     print("No flights added. Program exiting.")
 else:
-    print(f"{len(bgr)} flights added. {len(df)} flights total")
+    print(f"{len(df) - init_len} flights added. {len(df)} flights total")
+
+# Sleep logic 13:20 1/1/2022
+time.sleep(4)
+
+# Last fix 18:30 12/29/2021
+set_with_dataframe(df_ws, df)
 
 exit()
