@@ -1,8 +1,8 @@
 import requests
 import pandas as pd
 
-user = "#user#"
-key = "#key#"
+user = "hloughlin9"
+key = "5fb2d8528088de31addbf004f20248875e3a804d"
 payload = {"airport":"KBGR", "howMany":15}
 url = "https://flightxml.flightaware.com/json/FlightXML2/"
 
