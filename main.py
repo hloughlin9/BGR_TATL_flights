@@ -65,8 +65,9 @@ for col in bgr['ident']:
     except IndexError:
         idents_b.append("None")
 
-# Converting the airline ICAO codes from the API pull to a dictionary of codes listed as they are in the spreadsheet. 
-bgr['Airline'] = pd.Series(idents_a).map(al_dict)
+# Converting the airline ICAO codes from the API pull to a dictionary of codes listed as they are in the spreadsheet.
+bgr['Airline_SYM'] = pd.Series(idents_a)
+bgr['Airline'] = bgr['Airline_SYM'].map(al_dict)
 bgr['Flight'] = idents_b
 bgr['Type'] = bgr['aircrafttype'].map(ac_dict)
 
@@ -78,7 +79,8 @@ bgr['Destination'] = bgr['destination'].str.strip()
 # Greenland (starting with "BG"). There are other possible airports outside of these but most can be dealt with ad hoc.
 # "BG" and " " on bgr['Type'][0] checks 12:10 12/31/2021.
 # "TJ" checks on bgr['Origin'].str[0:2] 1/3/2022
-bgr = bgr[(((bgr['Origin'].str[0] != "K") & (bgr['Origin'].str[0] != "C") & (bgr['Origin'].str[1] != " ") & (bgr['Origin'].str[0] != "M") & (bgr['Origin'].str[0:2] != "BG") & (bgr['Origin'].str[0:2] != "TJ")) | ((bgr['Destination'].str[0] != "K") & (bgr['Destination'].str[0] != "C") & (bgr['Destination'].str[1] != " ") & (bgr['Destination'].str[0] != "M") & (bgr['Origin'].str[0:2] != "BG") & (bgr['Origin'].str[0:2] != "TJ"))) & (bgr['Type'].str[0] != " ")]
+# str.len() == 4 checks on ['Origin'] and ['Destination'] 1/7/2022
+bgr = bgr[(((bgr['Origin'].str[0] != "K") & (bgr['Origin'].str[0] != "C") & (bgr['Origin'].str[1] != " ") & (bgr['Origin'].str[0] != "M") & (bgr['Origin'].str[0:2] != "BG") & (bgr['Origin'].str[0:2] != "TJ")) | ((bgr['Destination'].str[0] != "K") & (bgr['Destination'].str[0] != "C") & (bgr['Destination'].str[1] != " ") & (bgr['Destination'].str[0] != "M") & (bgr['Origin'].str[0:2] != "BG") & (bgr['Origin'].str[0:2] != "TJ"))) & (bgr['Origin'].str.len() == 4) & (bgr['Destination'].str.len() == 4) & (bgr['Type'].str[0] != " ")]
 
 # Mapping the origin and destination from ICAO (4-letter) codes to IATA (3-letter) codes.
 bgr['Origin'] = bgr['Origin'].map(code_dict)
@@ -107,10 +109,13 @@ else:
 bgr = bgr[(bgr['Flight'] != "901") | (bgr['Airline'] != "N")]
 
 # ID serialization.
-bgr['ID'] = bgr['Date'].astype(str) + bgr['Airline'].astype(str) + bgr['Flight'].astype(str)
+bgr['ID'] = bgr['Date'].astype(str) + bgr['Airline_SYM'].astype(str) + bgr['Flight'].astype(str)
 bgr['ID'] = bgr['ID'].str.replace("-", "")
 bgr['ID'] = bgr['ID'].str[2:]
 bgr['ID'] = bgr['ID'].str.replace("nan", "")
+# Replacing None flight numbers with nothing. 1/5/2022
+bgr['ID'] = bgr['ID'].str.replace("None","")
+bgr['Flight'] = bgr['Flight'].str.replace("None","")
 
 # ML model to predict Direction based on Origin Country.
 X, y = df[['Origin Country']], df['Direction']
