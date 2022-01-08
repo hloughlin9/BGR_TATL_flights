@@ -5,6 +5,7 @@ from datetime import datetime as dt
 from sklearn.preprocessing import LabelEncoder
 from imblearn.ensemble import BalancedRandomForestClassifier
 from gspread_dataframe import set_with_dataframe
+import numpy as np
 import re
 import pandas as pd
 import warnings
@@ -82,6 +83,9 @@ bgr['Destination'] = bgr['destination'].str.strip()
 # str.len() == 4 checks on ['Origin'] and ['Destination'] 1/7/2022
 bgr = bgr[(((bgr['Origin'].str[0] != "K") & (bgr['Origin'].str[0] != "C") & (bgr['Origin'].str[1] != " ") & (bgr['Origin'].str[0] != "M") & (bgr['Origin'].str[0:2] != "BG") & (bgr['Origin'].str[0:2] != "TJ")) | ((bgr['Destination'].str[0] != "K") & (bgr['Destination'].str[0] != "C") & (bgr['Destination'].str[1] != " ") & (bgr['Destination'].str[0] != "M") & (bgr['Origin'].str[0:2] != "BG") & (bgr['Origin'].str[0:2] != "TJ"))) & (bgr['Origin'].str.len() == 4) & (bgr['Destination'].str.len() == 4) & (bgr['Type'].str[0] != " ")]
 
+# Drop the null aircraft 1/8/2022
+bgr = bgr[bgr['Type'].notna()]
+
 # Mapping the origin and destination from ICAO (4-letter) codes to IATA (3-letter) codes.
 bgr['Origin'] = bgr['Origin'].map(code_dict)
 bgr['Destination'] = bgr['Destination'].map(code_dict)
@@ -116,6 +120,10 @@ bgr['ID'] = bgr['ID'].str.replace("nan", "")
 # Replacing None flight numbers with nothing. 1/5/2022
 bgr['ID'] = bgr['ID'].str.replace("None","")
 bgr['Flight'] = bgr['Flight'].str.replace("None","")
+
+print(bgr['Type'])
+
+exit()
 
 # ML model to predict Direction based on Origin Country.
 X, y = df[['Origin Country']], df['Direction']
