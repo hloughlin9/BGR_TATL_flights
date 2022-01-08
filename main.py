@@ -121,10 +121,6 @@ bgr['ID'] = bgr['ID'].str.replace("nan", "")
 bgr['ID'] = bgr['ID'].str.replace("None","")
 bgr['Flight'] = bgr['Flight'].str.replace("None","")
 
-print(bgr['Type'])
-
-exit()
-
 # ML model to predict Direction based on Origin Country.
 X, y = df[['Origin Country']], df['Direction']
 
