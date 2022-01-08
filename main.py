@@ -151,7 +151,7 @@ else:
 # Last fix 18:30 12/29/2021
 set_with_dataframe(df_ws, df)
 
-# Sleep logic 13:20 1/1/2022
-time.sleep(4)
+# Sleep logic 11:34 1/8/2022
+time.sleep(6)
 
 exit()
