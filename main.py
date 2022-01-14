@@ -5,7 +5,6 @@ from datetime import datetime as dt
 from sklearn.preprocessing import LabelEncoder
 from imblearn.ensemble import BalancedRandomForestClassifier
 from gspread_dataframe import set_with_dataframe
-import numpy as np
 import re
 import pandas as pd
 import warnings
