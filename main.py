@@ -103,6 +103,8 @@ bgr = bgr.drop(["actualdeparturetime","origin","destination","originName","desti
 
 # If there are no flights to add, the program exits.
 if len(bgr) == 0:
+    # Sleep logic added 8:23 1/15/2022
+    time.sleep(4)
     print("No flights to add.")
     exit()
 else:
@@ -147,6 +149,8 @@ bgr = bgr[['ID','Date','Airline','Flight','Type','Origin','Origin Country','Dest
 df = df.append(bgr).sort_values(by=['Date']).reset_index(drop=True).drop_duplicates(subset=['ID'])
 
 if init_len == len(df):
+    # Sleep logic added 8:24 1/15/2022
+    time.sleep(4)
     print("No flights added. Program exiting.")
 else:
     print(f"{len(df) - init_len} flights added. {len(df)} flights total")
