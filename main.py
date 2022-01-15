@@ -103,9 +103,9 @@ bgr = bgr.drop(["actualdeparturetime","origin","destination","originName","desti
 
 # If there are no flights to add, the program exits.
 if len(bgr) == 0:
-    # Sleep logic added 9:40 1/15/2022
-    time.sleep(6)
+    # Sleep logic added 9:42 1/15/2022
     print("No flights to add.")
+    time.sleep(6)
     exit()
 else:
     pass
