@@ -69,8 +69,6 @@ for col in bgr['ident']:
 # Converting the airline ICAO codes from the API pull to a dictionary of codes listed as they are in the spreadsheet.
 bgr['Airline_SYM'] = pd.Series(idents_a)
 bgr['Airline_SYM'].fillna("None", inplace=True)
-
-
 bgr['Airline'] = bgr['Airline_SYM'].map(al_dict)
 bgr['Flight'] = idents_b
 bgr['Type'] = bgr['aircrafttype'].map(ac_dict)
