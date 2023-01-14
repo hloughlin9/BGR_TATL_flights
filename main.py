@@ -61,7 +61,7 @@ df, df_worksheet = get_sheet()
 
 
 # Get the initial length.
-init_len = len(df)
+initial_length = len(df)
 
 
 # Previous flights added 6/27/2022
@@ -244,11 +244,11 @@ df_final = pd.concat([df, bgr], axis=0).reset_index(drop=True)
 df_final = df_final.sort_values(by=['Date'])
 
 # Get the end length of the DataFrame.
-df_end_len = len(df_final)
+df_end_length = len(df_final)
 
 
 # Bool length calc rebuilt 6/25/2022
-if init_len == df_end_len:
+if initial_length == df_end_length:
     print("No flights to add at this time. Program exiting.")
     time.sleep(4)
     exit()
@@ -257,7 +257,7 @@ else:
 
 
 # Print flights logic created 5/26/2022, amended 5/28/2022, replaced 6/4/2022
-print(f"{bgr_length} flights added. {df_end_len} flights total\n")
+print(f"{bgr_length} flights added. {df_end_length} flights total\n")
 print("Flight(s) added:\n")
 print(bgr)
 
