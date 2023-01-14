@@ -74,5 +74,5 @@ class ResponseToDataFrame:
         self.type = get_rows(response, "aircraft_type")
         self.df = DataFrame([self.ident, self.origin_icao, self.destination_icao, self.origin, self.destination,
                              self.origin_name, self.destination_name, self.off, self.on,
-                             self.type]).transpose()
+                             self.type]).transpose().reset_index(drop=True)
         self.df.columns = ['ident','origin_icao','destination_icao',"origin","destination","origin_name","destination_name","off","on","type"]

@@ -80,7 +80,6 @@ req_d_df_final = req_d_df[req_d_df['destination_icao'] != ""]
 
 bgr = pd.concat([req_a_df_final, req_d_df_final], axis=0).reset_index(drop=True)
 
-
 now = dt.now(tz=et).strftime("%Y-%m-%d %H:%M:%S")
 print(f"Flights pulled from FlightAware AeroAPI query at {now}.")
 
@@ -104,7 +103,6 @@ bgr['Date'] = bgr['Date'].apply(lambda x: x.strftime("%Y-%m-%d"))
 # This ensures that our ICAO identifiers all have 4 letters.
 bgr = bgr[(bgr['origin_icao'].str.len() == 4) &
           (bgr['destination_icao'].str.len() == 4)].reset_index(drop=True)
-
 
 # Now that we have our arrival and departures together (for a given pull),
 # we will capture the identifiers.
@@ -131,11 +129,6 @@ bgr['airline'] = bgr['airline_sym'].map(al_dict)
 bgr['flight'] = idents_b
 bgr['type'] = bgr['type'].map(ac_dict)
 
-# Navy/USAF logic included 6/11/2022. There may be the odd C-130 or C-5
-# in the case of USAF but that is OK and can be dealt with ad hoc during
-# ongoing validation.
-bgr['type'].loc[bgr['airline'] == "US Navy"] = "Boeing 737-700"
-bgr['type'].loc[bgr['airline'] == "US Air Force"] = "Boeing C-17 Globemaster"
 
 # Drop the null aircraft 1/8/2022
 bgr = bgr[bgr['type'].notna()]
@@ -191,7 +184,6 @@ bgr.columns = ordered
 
 bgr['Direction'] = ["E" if i == "US" else "W" for i in bgr["Origin Country"]]
 
-
 # Logic to include only new flights 6/27/2022
 bgr = bgr[~bgr['ID'].isin(prev_flights)]
 
@@ -199,12 +191,28 @@ bgr_len = len(bgr)
 
 bgr.columns = [o for o in ordered] + ['Direction']
 
+# Replace any null airport names with "None."
+bgr['origin_name'].fillna("None", inplace=True)
+bgr['destination_name'].fillna("None", inplace=True)
+
+# Cut out any results with no airport "name".
+
+bgr = bgr[(bgr['destination_name'] == 'None') | (bgr['origin_name' == 'None'])]
 
 # Delete any records with both the origin and destination having the same country.
-bgr = bgr[~((bgr['Origin Country'] == "US") & (bgr['Destination Country'] == "US"))]
+#bgr = bgr[~((bgr['Origin Country'] == "US") & (bgr['Destination Country'] == "US"))]
+
+final_columns = ['ID', 'Date', 'Airline', 'Flight', 'Origin', 'Destination',
+                 'Origin Country', 'Destination Country', 'Direction']
+
+bgr = bgr[final_columns]
 
 # Drop duplicate code chained 13:01 1/1/2022
 df_final = pd.concat([df, bgr], axis=0).reset_index(drop=True)
+
+print(df_final.columns)
+
+exit()
 
 # Sort values isolated 10:34 2/5/2022
 df_final = df_final.sort_values(by=['Date'])
@@ -227,6 +235,8 @@ print()
 print("Flight(s) added:")
 print()
 print(bgr)
+
+exit()
 
 # Set the worksheet as the new version.
 set_with_dataframe(df_worksheet, df_final)
