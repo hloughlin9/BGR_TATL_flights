@@ -10,7 +10,7 @@ auth_header = {'x-apikey':key}
 
 class Request:
     """
-    Returns a departure object.
+    Returns a response object with the up-to-date flights.
     ...
     Attributes:
     -----------
@@ -18,6 +18,7 @@ class Request:
         Specify whether arrival or departure request.
     -----------
     returns:
+        Response of flights in the given time period matching the relevant condition.
         """
 
     def __init__(self, type=None):
