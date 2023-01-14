@@ -210,10 +210,6 @@ bgr = bgr[final_columns]
 # Drop duplicate code chained 13:01 1/1/2022
 df_final = pd.concat([df, bgr], axis=0).reset_index(drop=True)
 
-print(df_final.columns)
-
-exit()
-
 # Sort values isolated 10:34 2/5/2022
 df_final = df_final.sort_values(by=['Date'])
 
@@ -236,7 +232,6 @@ print("Flight(s) added:")
 print()
 print(bgr)
 
-exit()
 
 # Set the worksheet as the new version.
 set_with_dataframe(df_worksheet, df_final)
