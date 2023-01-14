@@ -191,13 +191,7 @@ bgr_len = len(bgr)
 
 bgr.columns = [o for o in ordered] + ['Direction']
 
-# Replace any null airport names with "None."
-bgr['origin_name'].fillna("None", inplace=True)
-bgr['destination_name'].fillna("None", inplace=True)
-
-# Cut out any results with no airport "name".
-
-bgr = bgr[(bgr['destination_name'] == 'None') | (bgr['origin_name' == 'None'])]
+bgr = bgr[(bgr['Origin'] != None) & (bgr['Destination'] == None)]
 
 # Delete any records with both the origin and destination having the same country.
 #bgr = bgr[~((bgr['Origin Country'] == "US") & (bgr['Destination Country'] == "US"))]
