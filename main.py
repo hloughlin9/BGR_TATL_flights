@@ -249,7 +249,7 @@ df_end_length = len(df_final)
 
 # Bool length calc rebuilt 6/25/2022
 if initial_length == df_end_length:
-    print("No flights to add at this time. Program exiting.")
+    print("No flights to add right now. Program exiting.")
     time.sleep(4)
     exit()
 else:
