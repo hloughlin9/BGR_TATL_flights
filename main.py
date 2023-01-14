@@ -47,16 +47,17 @@ warnings.filterwarnings("ignore")
 
 et = dateutil.tz.gettz("America/New_York")
 
-# Two CSVs that we import as dictionaries, essentially.
-# One maps airline ICAO identifiers (e.g. BAW for British Airways)
-# to airline names.
-# Another maps aircraft ICAO identifiers (e.g. B744 for Boeing 747-400)
-# to aircraft names.
 cols = ['FA', 'SS']
 
+# Below, two CSVs that we import as dictionaries, essentially.
+
+# One maps airline ICAO identifiers (e.g. BAW for British Airways)
+# to airline names.
 ac = pd.read_csv("AC.csv", names=cols)
 ac_dict = dict(zip(ac['FA'], ac['SS']))
 
+# Another maps aircraft ICAO identifiers (e.g. B744 for Boeing 747-400)
+# to aircraft names.
 al = pd.read_csv("AL.csv", names=cols)
 al_dict = dict(zip(al['FA'], al['SS']))
 
@@ -69,20 +70,28 @@ init_len = len(df)
 # Previous flights added 6/27/2022
 prev_flights = set(df['ID'])
 
+# The Request class makes the request to the FlightAware AeroAPI. We get both arrivals and departures here.
 req_a = Request(type="A").df
 req_d = Request(type="D").df
 
+# The ResponseToDataFrame class converts the returned response (above) into a DataFrame.
 req_a_df = ResponseToDataFrame(req_a).df
 req_d_df = ResponseToDataFrame(req_d).df
 
+# We do not want any flights where there is no origin or destination ICAO code.
 req_a_df_final = req_a_df[req_a_df['origin_icao'] != ""]
 req_d_df_final = req_d_df[req_d_df['destination_icao'] != ""]
 
-
+# Stack the two DataFrames.
 bgr = pd.concat([req_a_df_final, req_d_df_final], axis=0).reset_index(drop=True)
 
+# Get the current date and time.
 now = dt.now(tz=et).strftime("%Y-%m-%d %H:%M:%S")
 print(f"Flights pulled from FlightAware AeroAPI query at {now}.")
+
+# A list of dates. Since eastbound transatlantic flights may depart on one day and arrive on another — this is
+# theoretically the case with some late-departing westbound transatlantic flights, we need to be sure that we
+# are pulling the correct date: when it arrived or departed.
 
 dates = []
 
@@ -94,9 +103,22 @@ for i in range(len(bgr)):
 
 
 def utc_to_local(utc_dt):
+
+    """
+    Quick lambda function to convert UTC to local time (ET).
+
+    Parameters
+    ----------
+    utc_dt: The date provided by the API pull in UTC.
+
+    Returns
+    -------
+    Local time.
+    """
+
     return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=et)
 
-
+# A couple of date transformations to convert the initial dates into the correct ones.
 bgr['Date'] = pd.to_datetime(dates)
 bgr['Date'] = bgr['Date'].apply(lambda x: utc_to_local(x))
 bgr['Date'] = bgr['Date'].apply(lambda x: x.strftime("%Y-%m-%d"))
