@@ -2,7 +2,7 @@ from pandas import DataFrame
 import requests
 
 # Auth
-key = "##### key #####"
+key = "GpEfxxz7c8Gd5AjWW3Nt5Uwd55EGAUjv"
 url = "https://aeroapi.flightaware.com/aeroapi/"
 airport = 'KBGR'
 payload = {'max_pages': 1}
@@ -67,9 +67,12 @@ class ResponseToDataFrame:
         self.destination_icao = get_rows_airport(response, "destination", "code_icao")
         self.origin = get_rows_airport(response, "origin", "code_iata")
         self.destination = get_rows_airport(response, "destination", "code_iata")
+        self.origin_name = get_rows_airport(response, "origin", "name")
+        self.destination_name = get_rows_airport(response, "destination", "name")
         self.off = get_rows(response, "actual_off")
         self.on = get_rows(response, "actual_on")
         self.type = get_rows(response, "aircraft_type")
-        self.df = DataFrame([self.ident, self.origin, self.destination, self.off, self.on,
-                             self.origin_icao, self.destination_icao, self.type]).transpose()
-        self.df.columns = ['ident','Origin','Destination','out','in','origin_icao','destination_icao', 'Type']
+        self.df = DataFrame([self.ident, self.origin_icao, self.destination_icao, self.origin, self.destination,
+                             self.origin_name, self.destination_name, self.off, self.on,
+                             self.type]).transpose()
+        self.df.columns = ['ident','origin_icao','destination_icao',"origin","destination","origin_name","destination_name","off","on","type"]

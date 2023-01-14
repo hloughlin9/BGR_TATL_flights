@@ -38,7 +38,7 @@ from flight_sheet import get_sheet
 # Direction based on origin country (e.g. If flight
 # in US, it's "E" for East; otherwise, "W" for West.)
 # In the interest of cardinality, we have also added an
-# ID field to provide a singular field that can function as a primary key.
+# id field to provide a singular field that can function as a primary key.
 
 warnings.filterwarnings("ignore")
 
@@ -71,22 +71,26 @@ prev_flights = set(df['ID'])
 req_a = Request(type="A").df
 req_d = Request(type="D").df
 
-rta = ResponseToDataFrame(req_a).df
-rtd = ResponseToDataFrame(req_d).df
+req_a_df = ResponseToDataFrame(req_a).df
+req_d_df = ResponseToDataFrame(req_d).df
 
-bgr = pd.concat([rta, rtd], axis=0).reset_index(drop=True)
+req_a_df_final = req_a_df[req_a_df['origin_icao'] != ""]
+req_d_df_final = req_d_df[req_d_df['destination_icao'] != ""]
+
+
+bgr = pd.concat([req_a_df_final, req_d_df_final], axis=0).reset_index(drop=True)
 
 
 now = dt.now(tz=et).strftime("%Y-%m-%d %H:%M:%S")
-print(f"Flights pulled from FlightAware API query at {now}.")
+print(f"Flights pulled from FlightAware AeroAPI query at {now}.")
 
 dates = []
 
 for i in range(len(bgr)):
     if bgr['origin_icao'][i] == "KBGR":
-        dates.append(bgr['out'][i])
+        dates.append(bgr['off'][i])
     else:
-        dates.append(bgr['in'][i])
+        dates.append(bgr['on'][i])
 
 
 def utc_to_local(utc_dt):
@@ -123,18 +127,18 @@ for col in bgr['ident']:
 # codes listed as they are in the spreadsheet.
 bgr['airline_sym'] = pd.Series(idents_a)
 bgr['airline_sym'].fillna("None", inplace=True)
-bgr['Airline'] = bgr['airline_sym'].map(al_dict)
-bgr['Flight'] = idents_b
-bgr['Type'] = bgr['Type'].map(ac_dict)
+bgr['airline'] = bgr['airline_sym'].map(al_dict)
+bgr['flight'] = idents_b
+bgr['type'] = bgr['type'].map(ac_dict)
 
 # Navy/USAF logic included 6/11/2022. There may be the odd C-130 or C-5
 # in the case of USAF but that is OK and can be dealt with ad hoc during
 # ongoing validation.
-bgr['Type'].loc[bgr['Airline'] == "US Navy"] = "Boeing 737-700"
-bgr['Type'].loc[bgr['Airline'] == "US Air Force"] = "Boeing C-17 Globemaster"
+bgr['type'].loc[bgr['airline'] == "US Navy"] = "Boeing 737-700"
+bgr['type'].loc[bgr['airline'] == "US Air Force"] = "Boeing C-17 Globemaster"
 
 # Drop the null aircraft 1/8/2022
-bgr = bgr[bgr['Type'].notna()]
+bgr = bgr[bgr['type'].notna()]
 
 
 # We want to filter out flights that are entirely arriving and departing
@@ -154,8 +158,8 @@ bgr = bgr[(((bgr['origin_icao'].str[0] != "K") & (bgr['origin_icao'].str[0] != "
               (bgr['destination_icao'].str[0] != "M") &
               (bgr['destination_icao'].str[0:2] != "BG") &
               (bgr['destination_icao'].str[0] != "T") &
-              ((bgr['Flight'] != "901")
-              | (bgr['Airline'] != "N"))
+              ((bgr['flight'] != "901")
+              | (bgr['airline'] != "N"))
               ))]
 
 # All airport data, pulled by ICAO code from airportsdata.
@@ -164,29 +168,26 @@ icaos = load()
 
 # The ICAO-IATA and ICAO-country maps via airportsdata necessitated two fewer
 # dictionaries than before. 6/25/2022
-bgr['Origin Country'] = bgr['origin_icao'].apply(lambda x: icaos[x]['country'])
-bgr['Destination Country'] = bgr['destination_icao'].apply(lambda x: icaos[x]['country'])
+bgr['origin country'] = bgr['origin_icao'].apply(lambda x: icaos[x]['country'])
+bgr['destination country'] = bgr['destination_icao'].apply(lambda x: icaos[x]['country'])
 
-
-# ID serialization.
-bgr['ID'] = bgr['Date'].astype(str) + bgr['airline_sym'].astype(str) \
-            + bgr['Flight'].astype(str)
-bgr['ID'] = bgr['ID'].str.replace("-", "")
-bgr['ID'] = bgr['ID'].str[2:]
-bgr['ID'] = bgr['ID'].str.replace("nan", "")
+# id serialization.
+bgr['id'] = bgr['Date'].astype(str) + bgr['airline_sym'].astype(str) \
+            + bgr['flight'].astype(str)
+bgr['id'] = bgr['id'].str.replace("-", "")
+bgr['id'] = bgr['id'].str[2:]
+bgr['id'] = bgr['id'].str.replace("nan", "")
 
 # Replacing None flight numbers with nothing.
-bgr['ID'] = bgr['ID'].str.replace("None", "")
-bgr['Flight'] = bgr['Flight'].str.replace("None", "")
+bgr['id'] = bgr['id'].str.replace("None", "")
+bgr['flight'] = bgr['flight'].str.replace("None", "")
 
-# Dropping ident and Airline_SYM 2/24/2022
-bgr = bgr.drop(columns=["ident", "airline_sym"])
+ordered = ['ident', 'origin_icao', 'destination_icao', 'Origin', 'Destination',
+       'origin_name', 'destination_name', 'off', 'on', 'Type', 'Date',
+       'airline_sym', 'Airline', 'Flight', 'Origin Country',
+       'Destination Country', 'ID']
 
-ordered = ['ID', 'Date', 'Airline', 'Flight', 'Type',
-           'Origin', 'Origin Country', 'Destination', 'Destination Country']
-
-# Reorder the columns.
-bgr = bgr[ordered]
+bgr.columns = ordered
 
 bgr['Direction'] = ["E" if i == "US" else "W" for i in bgr["Origin Country"]]
 
@@ -196,7 +197,7 @@ bgr = bgr[~bgr['ID'].isin(prev_flights)]
 
 bgr_len = len(bgr)
 
-bgr = bgr[['ID', 'Date', 'Airline', 'Flight', 'Type', 'Origin', 'Origin Country', 'Destination', 'Destination Country', 'Direction']]
+bgr.columns = [o for o in ordered] + ['Direction']
 
 
 # Delete any records with both the origin and destination having the same country.
