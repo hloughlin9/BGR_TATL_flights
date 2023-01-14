@@ -210,7 +210,7 @@ bgr['Direction'] = ["E" if i == "US" else "W" for i in bgr["Origin Country"]]
 # Logic to include only new flights 6/27/2022
 bgr = bgr[~bgr['ID'].isin(prev_flights)]
 
-bgr_len = len(bgr)
+bgr_length = len(bgr)
 
 bgr.columns = [o for o in ordered] + ['Direction']
 
@@ -223,6 +223,7 @@ bgr = bgr[(bgr['Origin'] != None) & (bgr['Destination'] == None)]
 final_columns = ['ID', 'Date', 'Airline', 'Flight', 'Origin', 'Destination',
                  'Origin Country', 'Destination Country', 'Direction']
 
+# Order the DataFrame by the final columns order.
 bgr = bgr[final_columns]
 
 # Drop duplicate code chained 13:01 1/1/2022
@@ -231,7 +232,7 @@ df_final = pd.concat([df, bgr], axis=0).reset_index(drop=True)
 # Sort values isolated 10:34 2/5/2022
 df_final = df_final.sort_values(by=['Date'])
 
-# Adj 5/27/2022
+# Get the end length of the DataFrame.
 df_end_len = len(df_final)
 
 # Bool length calc rebuilt 6/25/2022
@@ -244,7 +245,7 @@ else:
 
 
 # Print flights logic created 5/26/2022, amended 5/28/2022, replaced 6/4/2022
-print(f"{bgr_len} flights added. {df_end_len} flights total")
+print(f"{bgr_length} flights added. {df_end_len} flights total")
 print()
 print("Flight(s) added:")
 print()
