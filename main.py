@@ -214,7 +214,7 @@ df_end_len = len(df_final)
 
 # Bool length calc rebuilt 6/25/2022
 if init_len == df_end_len:
-    print("No flights to add. Program exiting.")
+    print("No flights to add at this time. Program exiting.")
     time.sleep(4)
     exit()
 else:
@@ -224,7 +224,7 @@ else:
 # Print flights logic created 5/26/2022, amended 5/28/2022, replaced 6/4/2022
 print(f"{bgr_len} flights added. {df_end_len} flights total")
 print()
-print("Flight(s) Added:")
+print("Flight(s) added:")
 print()
 print(bgr)
 
