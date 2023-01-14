@@ -4,17 +4,21 @@ import pandas as pd
 import time
 import dateutil
 from gspread_dataframe import set_with_dataframe
-from datetime import datetime as dt, timezone as tz
+from datetime import datetime as dt, timezone
 from sys import exit
 from airportsdata import load
 from request_and_response import Request, ResponseToDataFrame
 from flight_sheet import get_sheet
+warnings.filterwarnings("ignore")
+
 
 # January 2023 update
+
 
 # The main objective for the program is to automate the addition
 # of flights to an existing spreadsheet.
 # Previously, there were nine fields to be filled out per observation:
+#
 # Date (if none, current datetime date entered)
 # Airline (if applicable)
 # Flight # (if applicable)
@@ -24,6 +28,7 @@ from flight_sheet import get_sheet
 # Destination IATA code
 # Destination Country
 # Direction
+#
 #
 # With this program, we will scrape the FlightAware API to see
 # if there are any new transatlantic flights to add to our spreadsheet.
@@ -40,11 +45,7 @@ from flight_sheet import get_sheet
 # In the interest of cardinality, we have also added an
 # id field to provide a singular field that can function as a primary key.
 
-warnings.filterwarnings("ignore")
-
 et = dateutil.tz.gettz("America/New_York")
-
-pd.options.display.max_columns = 15
 
 # Two CSVs that we import as dictionaries, essentially.
 # One maps airline ICAO identifiers (e.g. BAW for British Airways)
@@ -93,7 +94,7 @@ for i in range(len(bgr)):
 
 
 def utc_to_local(utc_dt):
-    return utc_dt.replace(tzinfo=tz.utc).astimezone(tz=et)
+    return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=et)
 
 
 bgr['Date'] = pd.to_datetime(dates)
@@ -191,6 +192,7 @@ bgr_len = len(bgr)
 
 bgr.columns = [o for o in ordered] + ['Direction']
 
+# Be sure that no flights are included without an origin or destination.
 bgr = bgr[(bgr['Origin'] != None) & (bgr['Destination'] == None)]
 
 # Delete any records with both the origin and destination having the same country.
