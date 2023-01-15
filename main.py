@@ -89,7 +89,7 @@ bgr = pd.concat([req_a_df_final, req_d_df_final], axis=0).reset_index(drop=True)
 
 # Get the current date and time.
 now = dt.now(tz=et).strftime("%Y-%m-%d %H:%M:%S")
-print(f"Flights pulled from FlightAware AeroAPI query at {now}.\n")
+print(f"Flights retrieved from FlightAware AeroAPI query at {now}.\n")
 
 
 # A list of dates. Since eastbound transatlantic flights may depart on one day and arrive on another — this is
@@ -250,8 +250,6 @@ else:
 # Print flights logic created 5/26/2022, amended 5/28/2022, replaced 6/4/2022
 print(f"{bgr_length} flights added. {df_end_length} flights total\n")
 print(f"Flight(s) added:\n{bgr}")
-
-exit()
 
 
 # Set the worksheet as the new version.
