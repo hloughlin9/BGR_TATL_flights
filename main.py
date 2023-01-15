@@ -221,7 +221,7 @@ bgr = bgr[~((bgr['Origin Country'] == "US") & (bgr['Destination Country'] == "US
 
 
 # These are the final columns to be used by the DataFrame.
-final_columns = ['ID', 'Date', 'Airline', 'Flight', 'Origin', 'Destination',
+final_columns = ['ID', 'Date', 'Airline', 'Flight', 'Type', 'Origin', 'Destination',
                  'Origin Country', 'Destination Country', 'Direction']
 
 
@@ -250,6 +250,8 @@ else:
 # Print flights logic created 5/26/2022, amended 5/28/2022, replaced 6/4/2022
 print(f"{bgr_length} flights added. {df_end_length} flights total\n")
 print(f"Flight(s) added:\n{bgr}")
+
+exit()
 
 
 # Set the worksheet as the new version.
