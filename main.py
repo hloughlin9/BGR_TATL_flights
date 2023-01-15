@@ -7,7 +7,7 @@ from gspread_dataframe import set_with_dataframe
 from datetime import datetime as dt, timezone
 from sys import exit
 from airportsdata import load
-from request_and_response import Request, ResponseToDataFrame
+from request_and_response import Request, ResponseToDataFrame, drop_nones
 from flight_sheet import get_sheet
 warnings.filterwarnings("ignore")
 
@@ -72,10 +72,13 @@ prev_flights = set(df['ID'])
 req_a = Request(type="A").df
 req_d = Request(type="D").df
 
+# Cut out any records that are missing airport codes.
+req_a_n = drop_nones(req_a)
+req_d_n = drop_nones(req_d)
 
 # The ResponseToDataFrame class converts the returned response (above) into a DataFrame.
-req_a_df = ResponseToDataFrame(req_a).df
-req_d_df = ResponseToDataFrame(req_d).df
+req_a_df = ResponseToDataFrame(req_a_n).df
+req_d_df = ResponseToDataFrame(req_d_n).df
 
 
 # We do not want any flights where there is no origin or destination ICAO code.
@@ -251,6 +254,7 @@ else:
 print(f"{bgr_length} flights added. {df_end_length} flights total\n")
 print(f"Flight(s) added:\n{bgr}")
 
+exit()
 
 # Set the worksheet as the new version.
 set_with_dataframe(df_worksheet, df_final)
