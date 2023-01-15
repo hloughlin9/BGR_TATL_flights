@@ -228,8 +228,6 @@ final_columns = ['ID', 'Date', 'Airline', 'Flight', 'Origin', 'Destination',
 # Order the DataFrame by the final columns order.
 bgr = bgr[final_columns]
 
-# Fill in null values under Airline with None.
-bgr['Airline'].fillna("None", inplace=True)
 
 # Drop duplicate code chained 13:01 1/1/2022
 df_final = pd.concat([df, bgr], axis=0).reset_index(drop=True)
