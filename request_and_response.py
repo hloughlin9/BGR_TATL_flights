@@ -2,7 +2,7 @@ from pandas import DataFrame
 import requests
 
 # Auth
-key = "##### key #####"
+key = "GpEfxxz7c8Gd5AjWW3Nt5Uwd55EGAUjv"
 url = "https://aeroapi.flightaware.com/aeroapi/"
 airport = 'KBGR'
 payload = {'max_pages': 1}

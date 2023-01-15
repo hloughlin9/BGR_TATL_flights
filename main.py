@@ -37,11 +37,11 @@ warnings.filterwarnings("ignore")
 # * Direction based on origin country (e.g. If flight in US, it's "E" for East; otherwise, "W" for West.)
 # In the interest of cardinality, we have also added an ID field to provide a primary key.
 
-# A couple of housekeeping items. We are using Eastern Time, and the list of columns below are relevant for the use of
-# airline and aircraft dictionaries.
+# A few housekeeping items. We are using Eastern Time, and the list of columns below are relevant for the use of
+# airline and aircraft dictionaries. We also want there to be 10 columns viewable.
 et = dateutil.tz.gettz("America/New_York")
-
 dict_cols = ['FA', 'SS']
+pd.options.display.max_columns = 10
 
 # Below, two CSVs that we import as dictionaries, essentially.
 
@@ -89,7 +89,7 @@ bgr = pd.concat([req_a_df_final, req_d_df_final], axis=0).reset_index(drop=True)
 
 # Get the current date and time.
 now = dt.now(tz=et).strftime("%Y-%m-%d %H:%M:%S")
-print(f"Flights pulled from FlightAware AeroAPI query at {now}.")
+print(f"Flights pulled from FlightAware AeroAPI query at {now}.\n")
 
 
 # A list of dates. Since eastbound transatlantic flights may depart on one day and arrive on another — this is
@@ -155,7 +155,6 @@ for col in bgr['ident']:
 # Converting the airline ICAO codes from the API pull to a dictionary of
 # codes listed as they are in the spreadsheet.
 bgr['airline_sym'] = pd.Series(idents_a)
-bgr['airline_sym'].fillna("None", inplace=True)
 bgr['airline'] = bgr['airline_sym'].map(al_dict)
 bgr['flight'] = idents_b
 bgr['type'] = bgr['type'].map(ac_dict)
@@ -171,14 +170,10 @@ bgr = bgr[bgr['type'].notna()]
 bgr = bgr[(((bgr['origin_icao'].str[0] != "K") & (bgr['origin_icao'].str[0] != "C")
             & (bgr['origin_icao'].str[1] != " ") & (bgr['origin_icao'].str[0] != "M") &
             (bgr['origin_icao'].str[0:2] != "BG") & (bgr['origin_icao'].str[0] != "T"))
-           | ((bgr['destination_icao'].str[0] != "K") &
-              (bgr['destination_icao'].str[0] != "C") &
-              (bgr['destination_icao'].str[1] != " ") &
-              (bgr['destination_icao'].str[0] != "M") &
-              (bgr['destination_icao'].str[0:2] != "BG") &
-              (bgr['destination_icao'].str[0] != "T") &
-              ((bgr['flight'] != "901")
-              | (bgr['airline'] != "N"))
+           | ((bgr['destination_icao'].str[0] != "K") & (bgr['destination_icao'].str[0] != "C") &
+              (bgr['destination_icao'].str[1] != " ") & (bgr['destination_icao'].str[0] != "M") &
+              (bgr['destination_icao'].str[0:2] != "BG") & (bgr['destination_icao'].str[0] != "T") &
+              ((bgr['flight'] != "901") | (bgr['airline'] != "N"))
               ))]
 
 
@@ -221,10 +216,6 @@ bgr = bgr[~bgr['ID'].isin(prev_flights)]
 bgr_length = len(bgr)
 
 
-# Be sure that no flights are included without an origin or destination.
-bgr = bgr[(bgr['Origin'] != None) & (bgr['Destination'] == None)]
-
-
 # Drop any records with both the origin and destination having the same country.
 bgr = bgr[~((bgr['Origin Country'] == "US") & (bgr['Destination Country'] == "US"))]
 
@@ -236,6 +227,9 @@ final_columns = ['ID', 'Date', 'Airline', 'Flight', 'Origin', 'Destination',
 
 # Order the DataFrame by the final columns order.
 bgr = bgr[final_columns]
+
+# Fill in null values under Airline with None.
+bgr['Airline'].fillna("None", inplace=True)
 
 # Drop duplicate code chained 13:01 1/1/2022
 df_final = pd.concat([df, bgr], axis=0).reset_index(drop=True)
@@ -249,12 +243,11 @@ df_end_length = len(df_final)
 
 # Bool length calc rebuilt 6/25/2022
 if initial_length == df_end_length:
-    print("No flights to add at this time. Program exiting.")
+    print("No flights to add at this time.\nProgram exiting.")
     time.sleep(4)
     exit()
 else:
     pass
-
 
 # Print flights logic created 5/26/2022, amended 5/28/2022, replaced 6/4/2022
 print(f"{bgr_length} flights added. {df_end_length} flights total\n")
