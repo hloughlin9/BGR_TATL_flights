@@ -44,7 +44,7 @@ class Request:
 
 def drop_nones(response):
     """
-    Eliminates rows where there is no ICAO code for either arrival or departure.
+    Eliminates rows where there is no ICAO code for either arrival or departure object.
 
     Parameters
     ----------
