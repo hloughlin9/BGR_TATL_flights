@@ -249,8 +249,7 @@ else:
 
 # Print flights logic created 5/26/2022, amended 5/28/2022, replaced 6/4/2022
 print(f"{bgr_length} flights added. {df_end_length} flights total\n")
-print("Flight(s) added:\n")
-print(bgr)
+print(f"Flight(s) added:\n{bgr}")
 
 
 # Set the worksheet as the new version.
