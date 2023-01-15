@@ -81,13 +81,8 @@ req_a_df = ResponseToDataFrame(req_a_n).df
 req_d_df = ResponseToDataFrame(req_d_n).df
 
 
-# We do not want any flights where there is no origin or destination ICAO code.
-req_a_df_final = req_a_df[req_a_df['origin_icao'] != ""]
-req_d_df_final = req_d_df[req_d_df['destination_icao'] != ""]
-
-
 # Stack the two DataFrames.
-bgr = pd.concat([req_a_df_final, req_d_df_final], axis=0).reset_index(drop=True)
+bgr = pd.concat([req_a_df, req_d_df], axis=0).reset_index(drop=True)
 
 
 # Get the current date and time.
