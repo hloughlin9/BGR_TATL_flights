@@ -1,8 +1,9 @@
 from pandas import DataFrame
 import requests
+import time
 
 # Auth
-key = "##### key #####"
+key = "GpEfxxz7c8Gd5AjWW3Nt5Uwd55EGAUjv"
 url = "https://aeroapi.flightaware.com/aeroapi/"
 airport = 'KBGR'
 payload = {'max_pages': 1}
@@ -102,20 +103,33 @@ class ResponseToDataFrame:
 
     """
     Returns filtered response as DataFrame.
+
+    Sleep objects inserted to reduce number of NoneType errors.
     """
 
     def __init__(self, response):
         self.ident = get_rows(response, "ident")
+        time.sleep(5)
         self.origin_icao = get_rows_airport(response, "origin", "code_icao")
+        time.sleep(5)
         self.destination_icao = get_rows_airport(response, "destination", "code_icao")
+        time.sleep(5)
         self.origin = get_rows_airport(response, "origin", "code_iata")
+        time.sleep(5)
         self.destination = get_rows_airport(response, "destination", "code_iata")
+        time.sleep(5)
         self.origin_name = get_rows_airport(response, "origin", "name")
+        time.sleep(5)
         self.destination_name = get_rows_airport(response, "destination", "name")
+        time.sleep(5)
         self.off = get_rows(response, "actual_off")
+        time.sleep(5)
         self.on = get_rows(response, "actual_on")
+        time.sleep(5)
         self.type = get_rows(response, "aircraft_type")
+        time.sleep(5)
         self.df = DataFrame([self.ident, self.origin_icao, self.destination_icao, self.origin, self.destination,
                              self.origin_name, self.destination_name, self.off, self.on,
                              self.type]).transpose().reset_index(drop=True)
+        time.sleep(5)
         self.df.columns = ['ident','origin_icao','destination_icao',"origin","destination","origin_name","destination_name","off","on","type"]
