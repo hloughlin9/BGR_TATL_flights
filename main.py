@@ -2,12 +2,12 @@ import warnings
 import re
 import pandas as pd
 import time
-import dateutil
+from dateutil import tz
 from gspread_dataframe import set_with_dataframe
 from datetime import datetime as dt, timezone
 from sys import exit
 from airportsdata import load
-from request_and_response import Request, ResponseToDataFrame, drop_nones
+from request_and_response import Request, ResponseToDataFrame
 from flight_sheet import get_sheet
 warnings.filterwarnings("ignore")
 
@@ -39,7 +39,7 @@ warnings.filterwarnings("ignore")
 
 # A few housekeeping items. We are using Eastern Time, and the list of columns below are relevant for the use of
 # airline and aircraft dictionaries. We also want there to be 10 columns viewable.
-et = dateutil.tz.gettz("America/New_York")
+et = tz.gettz("America/New_York")
 dict_cols = ['FA', 'SS']
 pd.options.display.max_columns = 10
 
@@ -72,14 +72,8 @@ prev_flights = set(df['ID'])
 req_a = Request(type="A").df
 req_d = Request(type="D").df
 
-# Cut out any records that are missing airport codes.
-req_a_n = drop_nones(req_a)
-req_d_n = drop_nones(req_d)
-
-# The ResponseToDataFrame class converts the returned response (above) into a DataFrame.
-req_a_df = ResponseToDataFrame(req_a_n).df
-req_d_df = ResponseToDataFrame(req_d_n).df
-
+req_a_df = ResponseToDataFrame(req_a).df
+req_d_df = ResponseToDataFrame(req_d).df
 
 # Stack the two DataFrames.
 bgr = pd.concat([req_a_df, req_d_df], axis=0).reset_index(drop=True)
@@ -128,6 +122,7 @@ bgr['Date'] = bgr['Date'].apply(lambda x: x.strftime("%Y-%m-%d"))
 # This ensures that our ICAO identifiers all have 4 letters.
 bgr = bgr[(bgr['origin_icao'].str.len() == 4) &
           (bgr['destination_icao'].str.len() == 4)].reset_index(drop=True)
+
 
 
 # Now that we have our arrival and departures together (for a given pull),
@@ -181,6 +176,7 @@ icaos = load()
 # The ICAO-IATA and ICAO-country maps via airportsdata necessitated two fewer dictionaries than before. 6/25/2022
 bgr['origin country'] = bgr['origin_icao'].apply(lambda x: icaos[x]['country'])
 bgr['destination country'] = bgr['destination_icao'].apply(lambda x: icaos[x]['country'])
+
 
 # ID serialization.
 bgr['id'] = bgr['Date'].astype(str) + bgr['airline_sym'].astype(str) + bgr['flight'].astype(str)
