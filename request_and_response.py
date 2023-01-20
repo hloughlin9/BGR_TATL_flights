@@ -1,6 +1,5 @@
 from pandas import DataFrame
 import requests
-import time
 
 # Auth
 key = "GpEfxxz7c8Gd5AjWW3Nt5Uwd55EGAUjv"
@@ -42,24 +41,6 @@ class Request:
         else:
             raise ValueError("Must specify arrivals or departures.")
 
-
-def drop_nones(response):
-    """
-    Eliminates rows where there is no ICAO code for either arrival or departure object.
-
-    Parameters
-    ----------
-    response object:
-        Response object from json.
-
-    Returns:
-        Response object minus records without ICAO or IATA codes.
-    -------
-
-    """
-    response_range_length = range(len(response))
-    return [response[i] for i in response_range_length if (response[i]['ident_icao'] != None) &
-            (response[i]['ident_icao'] != None)]
 
 def get_rows(response, col):
     """
@@ -109,27 +90,16 @@ class ResponseToDataFrame:
 
     def __init__(self, response):
         self.ident = get_rows(response, "ident")
-        time.sleep(5)
         self.origin_icao = get_rows_airport(response, "origin", "code_icao")
-        time.sleep(5)
         self.destination_icao = get_rows_airport(response, "destination", "code_icao")
-        time.sleep(5)
         self.origin = get_rows_airport(response, "origin", "code_iata")
-        time.sleep(5)
         self.destination = get_rows_airport(response, "destination", "code_iata")
-        time.sleep(5)
         self.origin_name = get_rows_airport(response, "origin", "name")
-        time.sleep(5)
         self.destination_name = get_rows_airport(response, "destination", "name")
-        time.sleep(5)
         self.off = get_rows(response, "actual_off")
-        time.sleep(5)
         self.on = get_rows(response, "actual_on")
-        time.sleep(5)
         self.type = get_rows(response, "aircraft_type")
-        time.sleep(5)
         self.df = DataFrame([self.ident, self.origin_icao, self.destination_icao, self.origin, self.destination,
                              self.origin_name, self.destination_name, self.off, self.on,
                              self.type]).transpose().reset_index(drop=True)
-        time.sleep(10)
         self.df.columns = ['ident','origin_icao','destination_icao',"origin","destination","origin_name","destination_name","off","on","type"]
