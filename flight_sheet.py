@@ -1,8 +1,6 @@
 import gspread
 from pandas import DataFrame
-import os
 
-os.chdir(r"C:\Users\henry")
 
 # Loading the spreadsheet.
 def get_sheet():
