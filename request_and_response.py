@@ -1,4 +1,4 @@
-from pandas import DataFrame
+import pandas as pd
 import requests
 
 # Auth
