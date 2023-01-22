@@ -73,29 +73,9 @@ now = dt.now(tz=et).strftime("%Y-%m-%d %H:%M:%S")
 print(f"Flights retrieved from FlightAware AeroAPI query at {now}.\n")
 
 
-# A list of dates. Since eastbound transatlantic flights may depart on one day and arrive on another — this is
-# theoretically the case with some late-departing westbound transatlantic flights, we need to be sure that we
-# are pulling the correct date: when it arrived or departed.
-
-def utc_to_local(utc_dt):
-
-    """
-    Quick lambda function to convert UTC to local time (ET).
-    Parameters
-    ----------
-    utc_dt: The date provided by the API pull in UTC.
-    Returns
-    -------
-    Local time.
-    """
-
-    return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=et)
-
-
 # A couple of date transformations to convert the initial dates into the correct ones.
 bgr['Date'] = pd.to_datetime(bgr['Date'])
-bgr['Date'] = bgr['Date'].apply(lambda x: utc_to_local(x))
-bgr['Date'] = bgr['Date'].apply(lambda x: x.strftime("%Y-%m-%d"))
+bgr['Date'] = bgr['Date'].dt.tz_convert("US/Eastern")
 
 
 # This ensures that our ICAO identifiers all have 4 letters.
@@ -149,13 +129,14 @@ bgr = bgr[(((bgr['origin_icao'].str[0] != "K") & (bgr['origin_icao'].str[0] != "
               ))]
 
 
-# All airport data, pulled by ICAO code from airportsdata. Default argument is ICAO; get IATAs using load("IATA").
-icaos = load()
+# Default argument is ICAO; get IATAs using load("IATA").
+iatas = load("IATA")
 
-# The ICAO-IATA and ICAO-country maps via airportsdata necessitated two fewer dictionaries than before. 6/25/2022
-bgr['origin country'] = bgr['origin_icao'].apply(lambda x: icaos[x]['country'])
-bgr['destination country'] = bgr['destination_icao'].apply(lambda x: icaos[x]['country'])
+# The country maps via airportsdata necessitated two fewer dictionaries than before. 6/25/2022
+bgr['origin_country'] = bgr['origin'].apply(lambda x: iatas[x]['country'])
+bgr['destination_country'] = bgr['destination'].apply(lambda x: iatas[x]['country'])
 
+bgr['Date'] = bgr['Date'].apply(lambda x: dt.strftime(x, "%Y-%m-%d"))
 
 # ID serialization.
 bgr['id'] = bgr['Date'].astype(str) + bgr['airline_sym'].astype(str) + bgr['flight'].astype(str)
@@ -167,21 +148,21 @@ bgr['id'] = bgr['id'].str.replace("nan", "")
 bgr['id'] = bgr['id'].str.replace("None", "")
 bgr['flight'] = bgr['flight'].str.replace("None", "")
 
+
 # An ordered list to use. This will change prior to the upload, but we will need certain fields for subsetting the data.
-ordered = ['ident', 'origin_icao', 'destination_icao', 'Origin', 'Destination', 'Type', 'Date', 'airline_sym',
-           'Airline', 'Flight', 'Origin Country', 'Destination Country', 'ID']
+ordered = ['Date', 'id', 'airline', 'type', 'origin', 'origin_country', 'destination', 'destination_country']
 
 
 # Set the columns as the ordered list we just defined.
-bgr.columns = ordered
+bgr = bgr[ordered]
 
 
 # Getting the direction of the flight based on where the origin country is.
-bgr['Direction'] = ["E" if i == "US" else "W" for i in bgr["Origin Country"]]
+bgr['Direction'] = ["E" if i == "US" else "W" for i in bgr["origin_country"]]
 
 
 # Logic to include only new flights. 6/27/2022
-bgr = bgr[~bgr['ID'].isin(prev_flights)]
+bgr = bgr[~bgr['id'].isin(prev_flights)]
 
 
 # Get the length of the bgr DataFrame.
@@ -189,20 +170,18 @@ bgr_length = len(bgr)
 
 
 # Drop any records with both the origin and destination having the same country.
-bgr = bgr[~((bgr['Origin Country'] == "US") & (bgr['Destination Country'] == "US"))]
-
-
-# These are the final columns to be used by the DataFrame.
-final_columns = ['ID', 'Date', 'Airline', 'Flight', 'Type', 'Origin', 'Destination',
-                 'Origin Country', 'Destination Country', 'Direction']
+bgr = bgr[~((bgr['origin_country'] == "US") & (bgr['destination_country'] == "US"))]
 
 
 # Order the DataFrame by the final columns order.
-bgr = bgr[final_columns]
+bgr = bgr.rename(columns={"id":"ID", "airline":"Airline", "flight":"Flight", "type":"Type",
+                          "origin":"Origin", "origin_country":"Origin Country", "destination":"Destination",
+                          "destination_country":"Destination Country"})
 
 
 # Drop duplicate code chained 13:01 1/1/2022
 df_final = pd.concat([df, bgr], axis=0).reset_index(drop=True)
+
 
 # Sort values isolated 10:34 2/5/2022
 df_final = df_final.sort_values(by=['Date'])
