@@ -46,8 +46,6 @@ req_a = Request(type="A").df
 req_d = Request(type="D").df
 
 
-
-
 a_idents = []
 a_origin_icaos = []
 a_destination_icaos = []
