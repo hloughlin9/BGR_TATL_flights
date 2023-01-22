@@ -42,64 +42,109 @@ class Request:
             raise ValueError("Must specify arrivals or departures.")
 
 
-def get_rows(response, col):
-    """
-    Retrieves rows for non-airport objects within the response.
-
-    Parameters
-    ----------
-    response object:
-        Response object from json.
-    col:
-        Column with which to get the rows.
-
-    Returns:
-        Individual rows for DataFrame.
-    -------
-
-    """
-    return [response[i][col] for i in range(len(response))]
-
-def get_rows_airport(response, col, type):
-    """
-    Retrieves rows for airport objects which have unique characteristics compared to other non-airport fields.
-
-    Parameters
-    ----------
-    response object:
-        Response object from json.
-    col string:
-        Type of movements to retrieve; should be "origin" or "destination".
-    type string:
-        Field name for airport characteristic to be returned (e.g. code_icao).
-    Returns:
-        Individual rows for DataFrame.
-    -------
-
-    """
-    return [response[i][col][type] for i in range(len(response))]
+req_a = Request(type="A").df
+req_d = Request(type="D").df
 
 
-class ResponseToDataFrame:
 
-    """
-    Returns filtered response as DataFrame.
 
-    Sleep objects inserted to reduce number of NoneType errors.
-    """
+a_idents = []
+a_origin_icaos = []
+a_destination_icaos = []
+a_origins = []
+a_destinations = []
+a_offs = []
+a_ons = []
+a_types = []
 
-    def __init__(self, response):
-        self.ident = get_rows(response, "ident")
-        self.origin_icao = get_rows_airport(response, "origin", "code_icao")
-        self.destination_icao = get_rows_airport(response, "destination", "code_icao")
-        self.origin = get_rows_airport(response, "origin", "code_iata")
-        self.destination = get_rows_airport(response, "destination", "code_iata")
-        self.origin_name = get_rows_airport(response, "origin", "name")
-        self.destination_name = get_rows_airport(response, "destination", "name")
-        self.off = get_rows(response, "actual_off")
-        self.on = get_rows(response, "actual_on")
-        self.type = get_rows(response, "aircraft_type")
-        self.df = DataFrame([self.ident, self.origin_icao, self.destination_icao, self.origin, self.destination,
-                             self.origin_name, self.destination_name, self.off, self.on,
-                             self.type]).transpose().reset_index(drop=True)
-        self.df.columns = ['ident','origin_icao','destination_icao',"origin","destination","origin_name","destination_name","off","on","type"]
+
+# A lot of try-excepts, but I figured one class is enough.
+for i in range(len(req_a)):
+    try:
+        a_origin_icaos.append(req_a[i]['origin']['code'])
+    except (KeyError, TypeError):
+        a_origin_icaos.append("None")
+    try:
+        a_destination_icaos.append(req_a[i]['destination']['code'])
+    except (KeyError, TypeError):
+        a_destination_icaos.append("None")
+    try:
+        a_origins.append(req_a[i]['origin']['code_iata'])
+    except (KeyError, TypeError):
+        a_origins.append("None")
+    try:
+        a_destinations.append(req_a[i]['destination']['code_iata'])
+    except TypeError:
+        a_destinations.append("None")
+    try:
+        a_types.append(req_a[i]['aircraft_type'])
+    except (KeyError, TypeError):
+        a_types.append("None")
+    try:
+        a_offs.append(req_a[i]['actual_off'])
+    except (KeyError, TypeError):
+        a_offs.append("None")
+    try:
+        a_ons.append(req_a[i]['actual_on'])
+    except (KeyError, TypeError):
+        a_ons.append("None")
+    try:
+        a_idents.append(req_a[i]['ident'])
+    except (KeyError, TypeError):
+        a_idents.append("None")
+
+a_df = pd.DataFrame([a_ons, a_idents, a_origin_icaos, a_destination_icaos, a_origins, a_destinations, a_types]).transpose()
+a_df.columns = ['Date', 'ident','origin_icao','destination_icao',"origin","destination","type"]
+
+
+d_idents = []
+d_origin_icaos = []
+d_destination_icaos = []
+d_origins = []
+d_destinations = []
+d_offs = []
+d_ons = []
+d_types = []
+
+
+# A lot of try-excepts, but I figured one class is enough.
+for i in range(len(req_d)):
+    try:
+        d_origin_icaos.append(req_d[i]['origin']['code'])
+    except (KeyError, TypeError):
+        d_origin_icaos.append("None")
+    try:
+        d_destination_icaos.append(req_d[i]['destination']['code'])
+    except (KeyError, TypeError):
+        d_destination_icaos.append("None")
+    try:
+        d_origins.append(req_d[i]['origin']['code_iata'])
+    except (KeyError, TypeError):
+        d_origins.append("None")
+    try:
+        d_destinations.append(req_d[i]['destination']['code_iata'])
+    except TypeError:
+        d_destinations.append("None")
+    try:
+        d_types.append(req_d[i]['aircraft_type'])
+    except (KeyError, TypeError):
+        d_types.append("None")
+    try:
+        d_offs.append(req_d[i]['actual_off'])
+    except (KeyError, TypeError):
+        d_offs.append("None")
+    try:
+        d_ons.append(req_d[i]['actual_on'])
+    except (KeyError, TypeError):
+        d_ons.append("None")
+    try:
+        d_idents.append(req_d[i]['ident'])
+    except (KeyError, TypeError):
+        d_idents.append("None")
+
+d_df = pd.DataFrame([d_offs, d_idents, d_origin_icaos, d_destination_icaos, d_origins, d_destinations, d_types]).transpose()
+d_df.columns = ['Date', 'ident','origin_icao','destination_icao',"origin","destination","type"]
+pd.options.display.max_columns = 10
+
+
+bgr = pd.concat([a_df, d_df], axis=0).reset_index(drop=True).sort_values(by="Date")
