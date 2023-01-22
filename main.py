@@ -7,7 +7,7 @@ from gspread_dataframe import set_with_dataframe
 from datetime import datetime as dt, timezone
 from sys import exit
 from airportsdata import load
-from request_and_response import Request, ResponseToDataFrame
+from request_and_response import bgr
 from flight_sheet import get_sheet
 warnings.filterwarnings("ignore")
 
@@ -68,17 +68,6 @@ initial_length = len(df)
 prev_flights = set(df['ID'])
 
 
-# The Request class makes the request to the FlightAware AeroAPI. We get both arrivals and departures here.
-req_a = Request(type="A").df
-req_d = Request(type="D").df
-
-req_a_df = ResponseToDataFrame(req_a).df
-req_d_df = ResponseToDataFrame(req_d).df
-
-# Stack the two DataFrames.
-bgr = pd.concat([req_a_df, req_d_df], axis=0).reset_index(drop=True)
-
-
 # Get the current date and time.
 now = dt.now(tz=et).strftime("%Y-%m-%d %H:%M:%S")
 print(f"Flights retrieved from FlightAware AeroAPI query at {now}.\n")
@@ -87,24 +76,14 @@ print(f"Flights retrieved from FlightAware AeroAPI query at {now}.\n")
 # A list of dates. Since eastbound transatlantic flights may depart on one day and arrive on another — this is
 # theoretically the case with some late-departing westbound transatlantic flights, we need to be sure that we
 # are pulling the correct date: when it arrived or departed.
-dates = []
-
-for i in range(len(bgr)):
-    if bgr['origin_icao'][i] == "KBGR":
-        dates.append(bgr['off'][i])
-    else:
-        dates.append(bgr['on'][i])
-
 
 def utc_to_local(utc_dt):
 
     """
     Quick lambda function to convert UTC to local time (ET).
-
     Parameters
     ----------
     utc_dt: The date provided by the API pull in UTC.
-
     Returns
     -------
     Local time.
@@ -114,7 +93,7 @@ def utc_to_local(utc_dt):
 
 
 # A couple of date transformations to convert the initial dates into the correct ones.
-bgr['Date'] = pd.to_datetime(dates)
+bgr['Date'] = pd.to_datetime(bgr['Date'])
 bgr['Date'] = bgr['Date'].apply(lambda x: utc_to_local(x))
 bgr['Date'] = bgr['Date'].apply(lambda x: x.strftime("%Y-%m-%d"))
 
@@ -189,9 +168,8 @@ bgr['id'] = bgr['id'].str.replace("None", "")
 bgr['flight'] = bgr['flight'].str.replace("None", "")
 
 # An ordered list to use. This will change prior to the upload, but we will need certain fields for subsetting the data.
-ordered = ['ident', 'origin_icao', 'destination_icao', 'Origin', 'Destination', 'origin_name', 'destination_name',
-           'off', 'on', 'Type', 'Date', 'airline_sym', 'Airline', 'Flight', 'Origin Country', 'Destination Country',
-           'ID']
+ordered = ['ident', 'origin_icao', 'destination_icao', 'Origin', 'Destination', 'Type', 'Date', 'airline_sym',
+           'Airline', 'Flight', 'Origin Country', 'Destination Country', 'ID']
 
 
 # Set the columns as the ordered list we just defined.
@@ -235,7 +213,7 @@ df_end_length = len(df_final)
 
 # Bool length calc rebuilt 6/25/2022
 if initial_length == df_end_length:
-    print("No flights to add at this time.\nProgram exiting.")
+    print("No flights to add at this time.\nProgram closing.")
     time.sleep(4)
     exit()
 else:
@@ -243,7 +221,7 @@ else:
 
 # Print flights logic created 5/26/2022, amended 5/28/2022, replaced 6/4/2022
 print(f"{bgr_length} flights added. {df_end_length} flights total\n")
-print(f"Flight(s) added:\n{bgr}")
+print(f"Flight(s) added to BGR_TATL_flights:\n{bgr}")
 
 
 # Set the worksheet as the new version.
