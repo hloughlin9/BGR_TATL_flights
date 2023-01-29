@@ -1,12 +1,17 @@
 import pandas as pd
 import requests
+from airportsdata import load
+pd.options.display.max_columns = 10
 
 # Auth
-key = "##### key #####"
+key = "GpEfxxz7c8Gd5AjWW3Nt5Uwd55EGAUjv"
 url = "https://aeroapi.flightaware.com/aeroapi/"
 airport = 'KBGR'
 payload = {'max_pages': 1}
 auth_header = {'x-apikey':key}
+
+# Fetching airportsdata for loading in countries. Default argument is ICAO; get IATAs using load("IATA").
+icaos = load()
 
 class Request:
     """
@@ -54,6 +59,8 @@ a_destinations = []
 a_offs = []
 a_ons = []
 a_types = []
+a_origin_countries = []
+a_destination_countries = []
 
 
 # A lot of try-excepts, but I figured one class is enough.
@@ -94,6 +101,22 @@ for i in range(len(req_a)):
 a_df = pd.DataFrame([a_ons, a_idents, a_origin_icaos, a_destination_icaos, a_origins, a_destinations, a_types]).transpose()
 a_df.columns = ['Date', 'ident','origin_icao','destination_icao',"origin","destination","type"]
 
+for i in a_df['origin_icao']:
+    try:
+        a_origin_countries.append(icaos[i]['country'])
+    except (TypeError, KeyError):
+        a_origin_countries.append("None")
+
+for i in a_df['destination_icao']:
+    try:
+        a_destination_countries.append(icaos[i]['country'])
+    except (TypeError, KeyError):
+        a_destination_countries.append("None")
+
+a_df['origin_country'] = a_origin_countries
+a_df['destination_country'] = a_destination_countries
+
+
 
 d_idents = []
 d_origin_icaos = []
@@ -103,6 +126,8 @@ d_destinations = []
 d_offs = []
 d_ons = []
 d_types = []
+d_origin_countries = []
+d_destination_countries = []
 
 
 # A lot of try-excepts, but I figured one class is enough.
@@ -142,7 +167,21 @@ for i in range(len(req_d)):
 
 d_df = pd.DataFrame([d_offs, d_idents, d_origin_icaos, d_destination_icaos, d_origins, d_destinations, d_types]).transpose()
 d_df.columns = ['Date', 'ident','origin_icao','destination_icao',"origin","destination","type"]
-pd.options.display.max_columns = 10
+pd.options.display.max_columns = 15
 
+for i in d_df['origin_icao']:
+    try:
+        d_origin_countries.append(icaos[i]['country'])
+    except (TypeError, KeyError):
+        d_origin_countries.append("None")
+
+for i in d_df['destination_icao']:
+    try:
+        d_destination_countries.append(icaos[i]['country'])
+    except (TypeError, KeyError):
+        d_destination_countries.append("None")
+
+d_df['origin_country'] = d_origin_countries
+d_df['destination_country'] = d_destination_countries
 
 bgr = pd.concat([a_df, d_df], axis=0).reset_index(drop=True).sort_values(by="Date")
