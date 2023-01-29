@@ -4,9 +4,8 @@ import pandas as pd
 import time
 from dateutil import tz
 from gspread_dataframe import set_with_dataframe
-from datetime import datetime as dt, timezone
+from datetime import datetime as dt
 from sys import exit
-from airportsdata import load
 from request_and_response import bgr
 from flight_sheet import get_sheet
 warnings.filterwarnings("ignore")
@@ -43,12 +42,14 @@ et = tz.gettz("America/New_York")
 dict_cols = ['FA', 'SS']
 pd.options.display.max_columns = 10
 
+
 # Below, two CSVs that we import as dictionaries, essentially.
 
 # One maps airline ICAO identifiers (e.g. BAW for British Airways)
 # to airline names.
 ac = pd.read_csv("AC.csv", names=dict_cols)
 ac_dict = dict(zip(ac['FA'], ac['SS']))
+
 
 # Another maps aircraft ICAO identifiers (e.g. B744 for Boeing 747-400)
 # to aircraft names.
@@ -81,7 +82,6 @@ bgr['Date'] = bgr['Date'].dt.tz_convert("US/Eastern")
 # This ensures that our ICAO identifiers all have 4 letters.
 bgr = bgr[(bgr['origin_icao'].str.len() == 4) &
           (bgr['destination_icao'].str.len() == 4)].reset_index(drop=True)
-
 
 
 # Now that we have our arrival and departures together (for a given pull),
@@ -124,19 +124,13 @@ bgr = bgr[(((bgr['origin_icao'].str[0] != "K") & (bgr['origin_icao'].str[0] != "
             (bgr['origin_icao'].str[0:2] != "BG") & (bgr['origin_icao'].str[0] != "T"))
            | ((bgr['destination_icao'].str[0] != "K") & (bgr['destination_icao'].str[0] != "C") &
               (bgr['destination_icao'].str[1] != " ") & (bgr['destination_icao'].str[0] != "M") &
-              (bgr['destination_icao'].str[0:2] != "BG") & (bgr['destination_icao'].str[0] != "T") &
+              (bgr['destination_icao'].str[:2] != "BG") & (bgr['destination_icao'].str[0] != "T") &
               ((bgr['flight'] != "901") | (bgr['airline'] != "N"))
               ))]
 
 
-# Default argument is ICAO; get IATAs using load("IATA").
-iatas = load("IATA")
-
-# The country maps via airportsdata necessitated two fewer dictionaries than before. 6/25/2022
-bgr['origin_country'] = bgr['origin'].apply(lambda x: iatas[x]['country'])
-bgr['destination_country'] = bgr['destination'].apply(lambda x: iatas[x]['country'])
-
 bgr['Date'] = bgr['Date'].apply(lambda x: dt.strftime(x, "%Y-%m-%d"))
+
 
 # ID serialization.
 bgr['id'] = bgr['Date'].astype(str) + bgr['airline_sym'].astype(str) + bgr['flight'].astype(str)
@@ -144,13 +138,14 @@ bgr['id'] = bgr['id'].str.replace("-", "")
 bgr['id'] = bgr['id'].str[2:]
 bgr['id'] = bgr['id'].str.replace("nan", "")
 
+
 # Replacing None flight numbers with nothing.
 bgr['id'] = bgr['id'].str.replace("None", "")
 bgr['flight'] = bgr['flight'].str.replace("None", "")
 
 
 # An ordered list to use. This will change prior to the upload, but we will need certain fields for subsetting the data.
-ordered = ['Date', 'id', 'airline', 'type', 'origin', 'origin_country', 'destination', 'destination_country']
+ordered = ['Date', 'id', 'airline', 'flight', 'type', 'origin', 'origin_country', 'destination', 'destination_country']
 
 
 # Set the columns as the ordered list we just defined.
@@ -169,8 +164,9 @@ bgr = bgr[~bgr['id'].isin(prev_flights)]
 bgr_length = len(bgr)
 
 
-# Drop any records with both the origin and destination having the same country.
-bgr = bgr[~((bgr['origin_country'] == "US") & (bgr['destination_country'] == "US"))]
+# Drop any records with both the origin and destination having the same country OR not being able to determine them.
+bgr = bgr[~((bgr['origin_country'] == "US") & (bgr['destination_country'] == "US")) &
+          ((bgr['origin_country'] != "None") & (bgr['destination_country'] != "None"))]
 
 
 # Order the DataFrame by the final columns order.
@@ -185,6 +181,7 @@ df_final = pd.concat([df, bgr], axis=0).reset_index(drop=True)
 
 # Sort values isolated 10:34 2/5/2022
 df_final = df_final.sort_values(by=['Date'])
+
 
 # Get the end length of the DataFrame.
 df_end_length = len(df_final)
