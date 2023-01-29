@@ -147,18 +147,14 @@ bgr['flight'] = bgr['flight'].str.replace("None", "")
 # An ordered list to use. This will change prior to the upload, but we will need certain fields for subsetting the data.
 ordered = ['Date', 'id', 'airline', 'flight', 'type', 'origin', 'origin_country', 'destination', 'destination_country']
 
-
 # Set the columns as the ordered list we just defined.
 bgr = bgr[ordered]
-
 
 # Getting the direction of the flight based on where the origin country is.
 bgr['Direction'] = ["E" if i == "US" else "W" for i in bgr["origin_country"]]
 
-
 # Logic to include only new flights. 6/27/2022
 bgr = bgr[~bgr['id'].isin(prev_flights)]
-
 
 # Get the length of the bgr DataFrame.
 bgr_length = len(bgr)
@@ -194,6 +190,7 @@ if initial_length == df_end_length:
     exit()
 else:
     pass
+
 
 # Print flights logic created 5/26/2022, amended 5/28/2022, replaced 6/4/2022
 print(f"{bgr_length} flights added. {df_end_length} flights total\n")
