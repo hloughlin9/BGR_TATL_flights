@@ -1,7 +1,7 @@
 import pandas as pd
 import requests
 from airportsdata import load
-pd.options.display.max_columns = 10
+
 
 # Auth
 key = "##### key #####"
@@ -10,8 +10,10 @@ airport = 'KBGR'
 payload = {'max_pages': 1}
 auth_header = {'x-apikey':key}
 
+
 # Fetching airportsdata for loading in countries. Default argument is ICAO; get IATAs using load("IATA").
 icaos = load()
+
 
 class Request:
     """
@@ -51,6 +53,8 @@ req_a = Request(type="A").df
 req_d = Request(type="D").df
 
 
+# Getting the relevant records for arrivals and departure are a bit of a beast.
+
 a_idents = []
 a_origin_icaos = []
 a_destination_icaos = []
@@ -63,7 +67,6 @@ a_origin_countries = []
 a_destination_countries = []
 
 
-# A lot of try-excepts, but I figured one class is enough.
 for i in range(len(req_a)):
     try:
         a_origin_icaos.append(req_a[i]['origin']['code'])
@@ -97,9 +100,11 @@ for i in range(len(req_a)):
         a_idents.append(req_a[i]['ident'])
     except (KeyError, TypeError):
         a_idents.append("None")
+        
 
 a_df = pd.DataFrame([a_ons, a_idents, a_origin_icaos, a_destination_icaos, a_origins, a_destinations, a_types]).transpose()
 a_df.columns = ['Date', 'ident','origin_icao','destination_icao',"origin","destination","type"]
+
 
 for i in a_df['origin_icao']:
     try:
@@ -107,15 +112,16 @@ for i in a_df['origin_icao']:
     except (TypeError, KeyError):
         a_origin_countries.append("None")
 
+        
 for i in a_df['destination_icao']:
     try:
         a_destination_countries.append(icaos[i]['country'])
     except (TypeError, KeyError):
         a_destination_countries.append("None")
 
+        
 a_df['origin_country'] = a_origin_countries
 a_df['destination_country'] = a_destination_countries
-
 
 
 d_idents = []
@@ -130,7 +136,6 @@ d_origin_countries = []
 d_destination_countries = []
 
 
-# A lot of try-excepts, but I figured one class is enough.
 for i in range(len(req_d)):
     try:
         d_origin_icaos.append(req_d[i]['origin']['code'])
@@ -165,9 +170,10 @@ for i in range(len(req_d)):
     except (KeyError, TypeError):
         d_idents.append("None")
 
+        
 d_df = pd.DataFrame([d_offs, d_idents, d_origin_icaos, d_destination_icaos, d_origins, d_destinations, d_types]).transpose()
 d_df.columns = ['Date', 'ident','origin_icao','destination_icao',"origin","destination","type"]
-pd.options.display.max_columns = 15
+
 
 for i in d_df['origin_icao']:
     try:
@@ -175,13 +181,16 @@ for i in d_df['origin_icao']:
     except (TypeError, KeyError):
         d_origin_countries.append("None")
 
+        
 for i in d_df['destination_icao']:
     try:
         d_destination_countries.append(icaos[i]['country'])
     except (TypeError, KeyError):
         d_destination_countries.append("None")
+        
 
 d_df['origin_country'] = d_origin_countries
 d_df['destination_country'] = d_destination_countries
+
 
 bgr = pd.concat([a_df, d_df], axis=0).reset_index(drop=True).sort_values(by="Date")
