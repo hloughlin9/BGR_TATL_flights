@@ -2,6 +2,7 @@ import warnings
 import re
 import pandas as pd
 import time
+import numpy as np
 from dateutil import tz
 from gspread_dataframe import set_with_dataframe
 from datetime import datetime as dt
@@ -142,6 +143,13 @@ bgr['id'] = bgr['id'].str.replace("nan", "")
 # Replacing None flight numbers with nothing.
 bgr['id'] = bgr['id'].str.replace("None", "")
 bgr['flight'] = bgr['flight'].str.replace("None", "")
+bgr['origin'] = bgr['origin'].str.replace("None", np.isnan)
+bgr['destination'] = bgr['destination'].str.replace("None", np.isnan)
+
+
+# If there is no IATA code, go to the ICAO for backup. These are unofficially called the Locarno locs.
+bgr['origin'] = np.where(bgr['destination'].isnull(), bgr['destination_icao'], bgr['destination'])
+bgr['destination'] = np.where(bgr['destination'].isnull(), bgr['destination_icao'], bgr['destination'])
 
 
 # An ordered list to use. This will change prior to the upload, but we will need certain fields for subsetting the data.
@@ -196,6 +204,7 @@ else:
 print(f"{bgr_length} flights added. {df_end_length} flights total\n")
 print(f"Flight(s) added to BGR_TATL_flights:\n{bgr}")
 
+exit()
 
 # Set the worksheet as the new version.
 set_with_dataframe(df_worksheet, df_final)
