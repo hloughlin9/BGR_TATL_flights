@@ -10,6 +10,7 @@ from sys import exit
 from request_and_response import bgr
 from flight_sheet import get_sheet
 warnings.filterwarnings("ignore")
+pd.options.display.max_columns = 20
 
 # January 2023 update
 
@@ -41,7 +42,6 @@ warnings.filterwarnings("ignore")
 # airline and aircraft dictionaries. We also want there to be 10 columns viewable.
 et = tz.gettz("America/New_York")
 dict_cols = ['FA', 'SS']
-pd.options.display.max_columns = 10
 
 
 # Below, two CSVs that we import as dictionaries, essentially.
@@ -153,10 +153,6 @@ bgr['destination'] = bgr['destination'].str.replace("None", np.isnan)
 bgr['origin'] = np.where(bgr['origin'].isnull(), bgr['origin_icao'], bgr['origin'])
 bgr['destination'] = np.where(bgr['destination'].isnull(), bgr['destination_icao'], bgr['destination'])
 
-pd.options.display.max_columns = 15
-print(bgr)
-
-exit()
 
 # An ordered list to use. This will change prior to the upload, but we will need certain fields for subsetting the data.
 ordered = ['Date', 'id', 'airline', 'flight', 'type', 'origin', 'origin_country', 'destination', 'destination_country']
