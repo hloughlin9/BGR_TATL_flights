@@ -147,7 +147,8 @@ bgr['origin'] = bgr['origin'].str.replace("None", np.isnan)
 bgr['destination'] = bgr['destination'].str.replace("None", np.isnan)
 
 
-# If there is no IATA code, go to the ICAO for backup. These are unofficially called the Locarno locs.
+# If there is no IATA code, go to the ICAO for backup. In honor of LSZL, which has no IATA code,
+# these are unofficially dubbed the Locarno locs.
 bgr['origin'] = np.where(bgr['destination'].isnull(), bgr['destination_icao'], bgr['destination'])
 bgr['destination'] = np.where(bgr['destination'].isnull(), bgr['destination_icao'], bgr['destination'])
 
