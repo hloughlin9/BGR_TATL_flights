@@ -210,7 +210,6 @@ else:
 print(f"{bgr_length} flights added. {df_end_length} flights total\n")
 print(f"Flight(s) added to BGR_TATL_flights:\n{bgr}")
 
-exit()
 
 # Set the worksheet as the new version.
 set_with_dataframe(df_worksheet, df_final)
