@@ -147,11 +147,16 @@ bgr['origin'] = bgr['origin'].str.replace("None", np.isnan)
 bgr['destination'] = bgr['destination'].str.replace("None", np.isnan)
 
 
+
 # If there is no IATA code, go to the ICAO for backup. In honor of LSZL, which has no IATA code,
 # these are unofficially dubbed the Locarno locs.
-bgr['origin'] = np.where(bgr['destination'].isnull(), bgr['destination_icao'], bgr['destination'])
+bgr['origin'] = np.where(bgr['origin'].isnull(), bgr['origin_icao'], bgr['origin'])
 bgr['destination'] = np.where(bgr['destination'].isnull(), bgr['destination_icao'], bgr['destination'])
 
+pd.options.display.max_columns = 15
+print(bgr)
+
+exit()
 
 # An ordered list to use. This will change prior to the upload, but we will need certain fields for subsetting the data.
 ordered = ['Date', 'id', 'airline', 'flight', 'type', 'origin', 'origin_country', 'destination', 'destination_country']
